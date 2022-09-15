@@ -22,7 +22,8 @@ namespace ThirdEye {
 		private: System::Windows::Forms::Label^ CaptureViewLabel;
 		private: System::Windows::Forms::PictureBox^ CaptureView;
 		private: System::Windows::Forms::Label^ TextViewLabel;
-		private: System::Windows::Forms::Label^ label1;
+	private: System::Windows::Forms::Label^ ConsoleLabel;
+
 		private: System::Windows::Forms::RichTextBox^ ObjectView;
 		private: System::Windows::Forms::Label^ ObjectViewLabel;
 		private: System::Windows::Forms::RichTextBox^ TextView;
@@ -30,6 +31,7 @@ namespace ThirdEye {
 		private: System::Windows::Forms::Label^ OpenCVViewLabel;
 		private: System::Windows::Forms::PictureBox^ OpenCVView;
 	private: System::Windows::Forms::ComboBox^ WindowSelection;
+	private: System::ComponentModel::BackgroundWorker^ WindowCaptureWorker;
 
 
 
@@ -48,16 +50,17 @@ namespace ThirdEye {
 			{
 				this->MainContainer = (gcnew System::Windows::Forms::SplitContainer());
 				this->richTextBox1 = (gcnew System::Windows::Forms::RichTextBox());
-				this->label1 = (gcnew System::Windows::Forms::Label());
+				this->ConsoleLabel = (gcnew System::Windows::Forms::Label());
 				this->ObjectView = (gcnew System::Windows::Forms::RichTextBox());
 				this->ObjectViewLabel = (gcnew System::Windows::Forms::Label());
 				this->TextView = (gcnew System::Windows::Forms::RichTextBox());
 				this->TextViewLabel = (gcnew System::Windows::Forms::Label());
+				this->WindowSelection = (gcnew System::Windows::Forms::ComboBox());
 				this->OpenCVView = (gcnew System::Windows::Forms::PictureBox());
 				this->OpenCVViewLabel = (gcnew System::Windows::Forms::Label());
 				this->CaptureViewLabel = (gcnew System::Windows::Forms::Label());
 				this->CaptureView = (gcnew System::Windows::Forms::PictureBox());
-				this->WindowSelection = (gcnew System::Windows::Forms::ComboBox());
+				this->WindowCaptureWorker = (gcnew System::ComponentModel::BackgroundWorker());
 				(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MainContainer))->BeginInit();
 				this->MainContainer->Panel1->SuspendLayout();
 				this->MainContainer->Panel2->SuspendLayout();
@@ -75,7 +78,7 @@ namespace ThirdEye {
 				// MainContainer.Panel1
 				// 
 				this->MainContainer->Panel1->Controls->Add(this->richTextBox1);
-				this->MainContainer->Panel1->Controls->Add(this->label1);
+				this->MainContainer->Panel1->Controls->Add(this->ConsoleLabel);
 				this->MainContainer->Panel1->Controls->Add(this->ObjectView);
 				this->MainContainer->Panel1->Controls->Add(this->ObjectViewLabel);
 				this->MainContainer->Panel1->Controls->Add(this->TextView);
@@ -100,19 +103,19 @@ namespace ThirdEye {
 				this->richTextBox1->TabIndex = 8;
 				this->richTextBox1->Text = L"";
 				// 
-				// label1
+				// ConsoleLabel
 				// 
-				this->label1->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
+				this->ConsoleLabel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
 					| System::Windows::Forms::AnchorStyles::Left)
 					| System::Windows::Forms::AnchorStyles::Right));
-				this->label1->AutoSize = true;
-				this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				this->ConsoleLabel->AutoSize = true;
+				this->ConsoleLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 12, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 					static_cast<System::Byte>(0)));
-				this->label1->Location = System::Drawing::Point(3, 375);
-				this->label1->Name = L"label1";
-				this->label1->Size = System::Drawing::Size(74, 20);
-				this->label1->TabIndex = 7;
-				this->label1->Text = L"Console";
+				this->ConsoleLabel->Location = System::Drawing::Point(3, 375);
+				this->ConsoleLabel->Name = L"ConsoleLabel";
+				this->ConsoleLabel->Size = System::Drawing::Size(74, 20);
+				this->ConsoleLabel->TabIndex = 7;
+				this->ConsoleLabel->Text = L"Console";
 				// 
 				// ObjectView
 				// 
@@ -143,6 +146,7 @@ namespace ThirdEye {
 				this->TextView->Size = System::Drawing::Size(693, 157);
 				this->TextView->TabIndex = 4;
 				this->TextView->Text = L"";
+				this->TextView->Visible = false;
 				// 
 				// TextViewLabel
 				// 
@@ -157,6 +161,15 @@ namespace ThirdEye {
 				this->TextViewLabel->Size = System::Drawing::Size(99, 20);
 				this->TextViewLabel->TabIndex = 2;
 				this->TextViewLabel->Text = L"Text Found";
+				// 
+				// WindowSelection
+				// 
+				this->WindowSelection->FormattingEnabled = true;
+				this->WindowSelection->Location = System::Drawing::Point(334, 5);
+				this->WindowSelection->Name = L"WindowSelection";
+				this->WindowSelection->Size = System::Drawing::Size(372, 21);
+				this->WindowSelection->TabIndex = 4;
+				this->WindowSelection->SelectionChangeCommitted += gcnew System::EventHandler(this, &MainWindow::WindowSelection_SelectionChangeCommitted);
 				// 
 				// OpenCVView
 				// 
@@ -203,13 +216,9 @@ namespace ThirdEye {
 				this->CaptureView->TabIndex = 0;
 				this->CaptureView->TabStop = false;
 				// 
-				// WindowSelection
+				// WindowCaptureWorker
 				// 
-				this->WindowSelection->FormattingEnabled = true;
-				this->WindowSelection->Location = System::Drawing::Point(334, 5);
-				this->WindowSelection->Name = L"WindowSelection";
-				this->WindowSelection->Size = System::Drawing::Size(372, 21);
-				this->WindowSelection->TabIndex = 4;
+				this->WindowCaptureWorker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &MainWindow::WindowCaptureWorker_DoWork);
 				// 
 				// MainWindow
 				// 
@@ -232,5 +241,8 @@ namespace ThirdEye {
 			}
 		#pragma endregion
 
-	};
+
+private: System::Void WindowSelection_SelectionChangeCommitted(System::Object^ sender, System::EventArgs^ e);
+private: System::Void WindowCaptureWorker_DoWork(System::Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
+};
 }

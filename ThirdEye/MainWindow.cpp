@@ -5,9 +5,13 @@ Will read text on screen and display what it sees through opencv
 */
 #include "MainWindow.h"
 #include "VFrameReader.h"
+#include "ComboboxItem.h"
 #include <vector>
 #include <string>
 #include <iostream>
+#include <codecvt>
+#include <vcclr.h>
+#include <list>
 
 
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
@@ -36,22 +40,27 @@ BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 /// </summary>
 ThirdEye::MainWindow::MainWindow() {
 	ThirdEye::MainWindow::InitializeComponent();
+    
+    // setup background workers
+    this->WindowCaptureWorker->WorkerReportsProgress = false;
+    this->WindowCaptureWorker->WorkerSupportsCancellation = true;
 
 	// get list of HWNDs that are open
     std::vector<std::wstring> titles;
     EnumWindows(EnumCallback, reinterpret_cast<LPARAM>(&titles));
+
     // At this point, titles if fully populated and could be displayed, e.g.:
     for (const auto& title : titles) {
-        HWND wHandle;
-        wHandle = FindWindow(NULL, title.c_str());
-        std::wcout << L"Title: " << title << L" HWND: " << wHandle << std::endl;
+        // getting the hwnd per title
+        // HWND wHandle;
+        // wHandle = FindWindow(NULL, title.c_str());
+        // std::wcout << L"Title: " << title << L" HWND: " << wHandle << std::endl;
+
+        // add titles to combobox
+        System::String^ sTitle = gcnew System::String(title.c_str());
+        ThirdEye::ComboboxItem^ cbi = gcnew ThirdEye::ComboboxItem(sTitle, 0);
+        this->WindowSelection->Items->Add(cbi);
     }
-        
-	
-	// call get frame to capture window
-	ThirdEye::VFrameReader vfr;
-	Image^ cFrame = vfr.GetFrame();
-	this->CaptureView->Image = cFrame;
 }
 
 /// <summary>
@@ -64,3 +73,44 @@ ThirdEye::MainWindow::~MainWindow() {
 	}
 }
 
+
+/// <summary>
+/// Worker to live capture window from desktop
+/// </summary>
+System::Void ThirdEye::MainWindow::WindowCaptureWorker_DoWork(System::Object^ sender, System::ComponentModel::DoWorkEventArgs^ e) {
+    String^ swTitle = safe_cast<String^>(e->Argument);
+
+    // get window info
+    HWND wHandle;
+    pin_ptr<const wchar_t> lcTitle = PtrToStringChars(swTitle);
+    wHandle = FindWindow(NULL, lcTitle);
+    
+    // capture live
+    //for (;;) {
+        // call get frame to capture window
+        ThirdEye::VFrameReader vfr;
+        Image^ cFrame = vfr.GetFrame(wHandle);
+        this->CaptureView->Image = cFrame;
+    //}
+}
+
+
+/// <summary>
+/// Selection change for Window focus
+/// </summary>
+System::Void ThirdEye::MainWindow::WindowSelection_SelectionChangeCommitted(System::Object^ sender, System::EventArgs^ e) {
+    ComboBox^ senderCB = (ComboBox^)sender;
+    String^ swTitle = senderCB->SelectedItem->ToString();
+
+    // stop previous capture if there is one
+    if (swTitle->Length > 0) {
+        this->WindowCaptureWorker->CancelAsync();
+    }
+
+    // setup worker arguments
+
+    // run worker for capture
+    this->WindowCaptureWorker->RunWorkerAsync(swTitle);
+
+    
+}

@@ -21,6 +21,9 @@
     <ClInclude Include="VFrameReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ComboboxItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainWindow.cpp">

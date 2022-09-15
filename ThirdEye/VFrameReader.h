@@ -10,7 +10,7 @@ namespace ThirdEye {
 	public ref class VFrameReader {
 		public: 
 			VFrameReader(void);
-			System::Drawing::Image^ GetFrame(void);
+			System::Drawing::Image^ GetFrame(HWND);
 			int cFrameWidth;
 			int cFrameHeight;
 	
