@@ -29,6 +29,7 @@ namespace ThirdEye {
 		private: System::Windows::Forms::RichTextBox^ richTextBox1;
 		private: System::Windows::Forms::Label^ OpenCVViewLabel;
 		private: System::Windows::Forms::PictureBox^ OpenCVView;
+	private: System::Windows::Forms::ComboBox^ WindowSelection;
 
 
 
@@ -56,6 +57,7 @@ namespace ThirdEye {
 				this->OpenCVViewLabel = (gcnew System::Windows::Forms::Label());
 				this->CaptureViewLabel = (gcnew System::Windows::Forms::Label());
 				this->CaptureView = (gcnew System::Windows::Forms::PictureBox());
+				this->WindowSelection = (gcnew System::Windows::Forms::ComboBox());
 				(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->MainContainer))->BeginInit();
 				this->MainContainer->Panel1->SuspendLayout();
 				this->MainContainer->Panel2->SuspendLayout();
@@ -81,6 +83,7 @@ namespace ThirdEye {
 				// 
 				// MainContainer.Panel2
 				// 
+				this->MainContainer->Panel2->Controls->Add(this->WindowSelection);
 				this->MainContainer->Panel2->Controls->Add(this->OpenCVView);
 				this->MainContainer->Panel2->Controls->Add(this->OpenCVViewLabel);
 				this->MainContainer->Panel2->Controls->Add(this->CaptureViewLabel);
@@ -199,6 +202,14 @@ namespace ThirdEye {
 				this->CaptureView->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
 				this->CaptureView->TabIndex = 0;
 				this->CaptureView->TabStop = false;
+				// 
+				// WindowSelection
+				// 
+				this->WindowSelection->FormattingEnabled = true;
+				this->WindowSelection->Location = System::Drawing::Point(334, 5);
+				this->WindowSelection->Name = L"WindowSelection";
+				this->WindowSelection->Size = System::Drawing::Size(372, 21);
+				this->WindowSelection->TabIndex = 4;
 				// 
 				// MainWindow
 				// 
