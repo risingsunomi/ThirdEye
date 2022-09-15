@@ -4,7 +4,9 @@
 /// Constructor
 /// <summary>
 ThirdEye::VFrameReader::VFrameReader(void) {
-
+    // default 1920x1080
+    this->cFrameWidth = 1920;
+    this->cFrameHeight = 1080;
 }
 
 /// <summary>
@@ -24,8 +26,8 @@ System::Drawing::Image^ ThirdEye::VFrameReader::GetFrame() {
     HDC cFrameMem = CreateCompatibleDC(cFrame);
     
     // width height of main desktop screen
-    int cFrameWidth = GetDeviceCaps(cFrame, HORZRES);
-    int cFrameHeight = GetDeviceCaps(cFrame, VERTRES);
+    this->cFrameWidth = GetDeviceCaps(cFrame, HORZRES);
+    this->cFrameHeight = GetDeviceCaps(cFrame, VERTRES);
 
     // create a bitmap to send to CaptureView
     HBITMAP cFrameHBitmap = CreateCompatibleBitmap(cFrame, cFrameWidth, cFrameHeight);

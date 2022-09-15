@@ -14,6 +14,8 @@ namespace ThirdEye {
 		public: 
 			VFrameReader(void);
 			Image^ GetFrame(void);
+			int cFrameWidth;
+			int cFrameHeight;
 	
 		protected: 
 			~VFrameReader();
