@@ -1,4 +1,6 @@
 #include "VFrameReader.h"
+using namespace System;
+using namespace System::Drawing;
 
 ///<summary>
 /// Constructor
@@ -20,7 +22,7 @@ ThirdEye::VFrameReader::~VFrameReader() {
 ///GetFrame gets the current desktop or window frame and display it in
 /// output window CaptureView along with later analysis in OpenCV
 ///</summary>
-System::Drawing::Image^ ThirdEye::VFrameReader::GetFrame() {
+Image^ ThirdEye::VFrameReader::GetFrame() {
     // add in ability to take in window handle for specific programs, for now whole main desktop
     HDC cFrame = GetDC(nullptr);
     HDC cFrameMem = CreateCompatibleDC(cFrame);
@@ -42,5 +44,5 @@ System::Drawing::Image^ ThirdEye::VFrameReader::GetFrame() {
     // convert HBITMAP to BITMAP
     Bitmap^ cFrameBitmap = Bitmap::FromHbitmap((IntPtr)cFrameHBitmap);
 
-    return (System::Drawing::Image^ ) cFrameBitmap;
+    return (Image^ ) cFrameBitmap;
 }
