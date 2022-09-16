@@ -84,14 +84,18 @@ System::Void ThirdEye::MainWindow::WindowCaptureWorker_DoWork(System::Object^ se
     HWND wHandle;
     pin_ptr<const wchar_t> lcTitle = PtrToStringChars(swTitle);
     wHandle = FindWindow(NULL, lcTitle);
+    Debug::WriteLine(swTitle);
     
     // capture live
-    //for (;;) {
+    for (;;) {
         // call get frame to capture window
         ThirdEye::VFrameReader vfr;
-        Image^ cFrame = vfr.GetFrame(wHandle);
+        // Image^ cFrame = vfr.GetFrame(wHandle);
+        Image^ cFrame = vfr.GetFrameDX(wHandle);
+        Debug::WriteLine("Grabbing frame from GDXI");
+        Debug::WriteLine("Size " + cFrame->Size.ToString());
         this->CaptureView->Image = cFrame;
-    //}
+    }
 }
 
 
