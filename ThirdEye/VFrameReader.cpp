@@ -56,27 +56,32 @@ Image^ ThirdEye::VFrameReader::GetFrame(HWND capWindow) {
     // SetForegroundWindow(GetConsoleWindow());
 
     // convert HBITMAP to BITMAP
-    Bitmap^ cFrameBitmap = Bitmap::FromHbitmap((IntPtr)cFrameHBitmap);
+    if (cFrameHBitmap != nullptr) {
+        Bitmap^ cFrameBitmap = Bitmap::FromHbitmap((IntPtr)cFrameHBitmap);
 
-    // clean up capture
-    DeleteObject(cFrameHBitmap);
-    DeleteObject(cFrameCopy);
-    ReleaseDC(HWND_DESKTOP, cFrame);
-    DeleteDC(cFrameMem);
+        // clean up capture
+        DeleteObject(cFrameHBitmap);
+        DeleteObject(cFrameCopy);
+        ReleaseDC(HWND_DESKTOP, cFrame);
+        DeleteDC(cFrameMem);
 
-    return (Image^)cFrameBitmap;
+        return (Image^)cFrameBitmap;
+    }
+
+    return nullptr;
+    
 }
 
 ///<summary>
 ///GetFrameDX gets the current desktop or window frame like GetFrame
-/// but with DirectX
+/// but with DirectX - this is only supported by Win10+
 ///</summary>
 
 Image^ ThirdEye::VFrameReader::GetFrameDX(HWND capWindow) {
     
     // use whole desktop to capture window to get over non windows api gui issue
     IDXGISwapChain* g_pSwapChain = NULL;
-    IDXGISurface1* g_pSurface1 = NULL;
+    IDXGISurface1* g_pSurface1;
     HDC cFrame;
 
     RECT pgmRect;
@@ -84,7 +89,7 @@ Image^ ThirdEye::VFrameReader::GetFrameDX(HWND capWindow) {
     int pgmWidth = pgmRect.right - pgmRect.left;
     int pgmHeight = pgmRect.bottom - pgmRect.top;
 
-    HRESULT hr = g_pSwapChain->GetBuffer(0, __uuidof(IDXGISurface1), (void**)&g_pSurface1);
+    HRESULT hr = g_pSwapChain->GetBuffer(0, __uuidof(IDXGISurface1), (LPVOID*)&g_pSurface1);
 
     if (SUCCEEDED(hr)) {
         g_pSurface1->GetDC(FALSE, &cFrame);

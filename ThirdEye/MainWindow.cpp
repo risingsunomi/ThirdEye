@@ -84,18 +84,26 @@ System::Void ThirdEye::MainWindow::WindowCaptureWorker_DoWork(System::Object^ se
     HWND wHandle;
     pin_ptr<const wchar_t> lcTitle = PtrToStringChars(swTitle);
     wHandle = FindWindow(NULL, lcTitle);
-    Debug::WriteLine(swTitle);
-    
-    // capture live
-    for (;;) {
-        // call get frame to capture window
-        ThirdEye::VFrameReader vfr;
-        // Image^ cFrame = vfr.GetFrame(wHandle);
-        Image^ cFrame = vfr.GetFrameDX(wHandle);
-        Debug::WriteLine("Grabbing frame from GDXI");
-        Debug::WriteLine("Size " + cFrame->Size.ToString());
-        this->CaptureView->Image = cFrame;
+
+    if (wHandle != nullptr) {
+        Debug::WriteLine(swTitle);
+
+        // capture live
+        for (;;) {
+            // call get frame to capture window
+            ThirdEye::VFrameReader vfr;
+            Image^ cFrame = vfr.GetFrame(wHandle);
+
+            if (cFrame != nullptr) {
+                // Image^ cFrame = vfr.GetFrameDX(wHandle);
+                Debug::WriteLine("Grabbing frame from GDXI");
+                Debug::WriteLine("Size " + cFrame->Size.ToString());
+                this->CaptureView->Image = cFrame;
+            }
+            
+        }
     }
+    
 }
 
 
@@ -106,15 +114,14 @@ System::Void ThirdEye::MainWindow::WindowSelection_SelectionChangeCommitted(Syst
     ComboBox^ senderCB = (ComboBox^)sender;
     String^ swTitle = senderCB->SelectedItem->ToString();
 
-    // stop previous capture if there is one
-    if (swTitle->Length > 0) {
-        this->WindowCaptureWorker->CancelAsync();
-    }
-
     // setup worker arguments
 
     // run worker for capture
-    this->WindowCaptureWorker->RunWorkerAsync(swTitle);
+    // stop previous capture if there is one
+    if(!this->WindowCaptureWorker->IsBusy)
+        this->WindowCaptureWorker->RunWorkerAsync(swTitle);
+    else
+        this->WindowCaptureWorker->CancelAsync();
 
     
 }
