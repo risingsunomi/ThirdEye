@@ -5,6 +5,9 @@ Will read text on screen and display what it sees through opencv
 */
 #include "MainWindow.h"
 
+/// <summary>
+/// Callback for enumerating the titles of open apps
+/// </summary>
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
     const DWORD TITLE_SIZE = 1024;
     WCHAR windowTitle[TITLE_SIZE];
@@ -31,30 +34,12 @@ BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 /// </summary>
 ThirdEye::MainWindow::MainWindow() {
 	ThirdEye::MainWindow::InitializeComponent();
-    
-    // setup background workers
-    this->WindowCaptureWorker->WorkerReportsProgress = false;
-    this->WindowCaptureWorker->WorkerSupportsCancellation = true;
-
-	// get list of HWNDs that are open
-    std::vector<std::wstring> titles;
-    EnumWindows(EnumCallback, reinterpret_cast<LPARAM>(&titles));
-
-    // At this point, titles if fully populated and could be displayed, e.g.:
-    for (const auto& title : titles) {
-        // getting the hwnd per title
-        // HWND wHandle;
-        // wHandle = FindWindow(NULL, title.c_str());
-        // std::wcout << L"Title: " << title << L" HWND: " << wHandle << std::endl;
-
-        // add titles to combobox
-        System::String^ sTitle = gcnew System::String(title.c_str());
-        ThirdEye::ComboboxItem^ cbi = gcnew ThirdEye::ComboboxItem(sTitle, 0);
-        this->WindowSelection->Items->Add(cbi);
-    }
 
     // setup frame capture
     this->vreader = gcnew ThirdEye::VFrameReader();
+
+    // setup app names selection
+    ThirdEye::MainWindow::GetAppNames();
 }
 
 /// <summary>
@@ -70,6 +55,27 @@ ThirdEye::MainWindow::~MainWindow() {
     this->vreader = nullptr;
 }
 
+/// <summary>
+/// Get all open application names
+/// </summary>
+System::Void ThirdEye::MainWindow::GetAppNames() {
+    // get list of HWNDs that are open
+    std::vector<std::wstring> titles;
+    EnumWindows(EnumCallback, reinterpret_cast<LPARAM>(&titles));
+
+    // loop through titles
+    for (const auto& title : titles) {
+        // getting the hwnd per title
+        // HWND wHandle;
+        // wHandle = FindWindow(NULL, title.c_str());
+        // std::wcout << L"Title: " << title << L" HWND: " << wHandle << std::endl;
+
+        // add titles to combobox
+        System::String^ sTitle = gcnew System::String(title.c_str());
+        ThirdEye::ComboboxItem^ cbi = gcnew ThirdEye::ComboboxItem(sTitle, 0);
+        this->WindowSelection->Items->Add(cbi);
+    }
+}
 
 /// <summary>
 /// Worker to live capture window from desktop
@@ -92,6 +98,14 @@ System::Void ThirdEye::MainWindow::WindowCaptureWorker_RunWorkerCompleted(System
     this->vreader->bgWorker->RunWorkerAsync(this->vreader->appName);
 }
 
+/// <summary>
+/// When combo box is clicked refresh app name list
+/// </summary>
+System::Void ThirdEye::MainWindow::WindowSelection_Click(System::Object^ sender, System::EventArgs^ e) {
+    // refresh app name list
+    this->WindowSelection->Items->Clear();
+    ThirdEye::MainWindow::GetAppNames();
+}
 
 /// <summary>
 /// Selection change for Window focus
@@ -106,16 +120,15 @@ System::Void ThirdEye::MainWindow::WindowSelection_SelectionChangeCommitted(Syst
     this->vreader->capView = this->CaptureView;
 
     // set background worker
+    this->WindowCaptureWorker->WorkerReportsProgress = false;
+    this->WindowCaptureWorker->WorkerSupportsCancellation = true;
     this->vreader->bgWorker = this->WindowCaptureWorker;
-
-    // setup worker arguments
 
     // run worker for capture
     // stop previous capture if there is one
     Debug::WriteLine("Is busy?");
     Debug::Write(this->vreader->bgWorker->IsBusy);
     if (!this->vreader->bgWorker->IsBusy) {
-        this->vreader->bgWorker->WorkerSupportsCancellation = true;
         this->vreader->bgWorker->RunWorkerAsync(this->vreader->appName);
     } else {
         if (!this->vreader->isCanceled) {

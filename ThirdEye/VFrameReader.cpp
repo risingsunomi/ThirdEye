@@ -7,7 +7,6 @@ using namespace System::Diagnostics;
 /// Constructor
 /// <summary>
 ThirdEye::VFrameReader::VFrameReader() {
-    
     // default 1920x1080
     this->cFrameWidth = 1920;
     this->cFrameHeight = 1080;

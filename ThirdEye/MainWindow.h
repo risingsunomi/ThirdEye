@@ -183,6 +183,7 @@ namespace ThirdEye {
 				this->WindowSelection->Size = System::Drawing::Size(372, 21);
 				this->WindowSelection->TabIndex = 4;
 				this->WindowSelection->SelectionChangeCommitted += gcnew System::EventHandler(this, &MainWindow::WindowSelection_SelectionChangeCommitted);
+				this->WindowSelection->Click += gcnew System::EventHandler(this, &MainWindow::WindowSelection_Click);
 				// 
 				// OpenCVView
 				// 
@@ -259,5 +260,7 @@ namespace ThirdEye {
 private: System::Void WindowSelection_SelectionChangeCommitted(System::Object^ sender, System::EventArgs^ e);
 private: System::Void WindowCaptureWorker_DoWork(System::Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
 private: System::Void WindowCaptureWorker_RunWorkerCompleted(System::Object^ sender, System::ComponentModel::RunWorkerCompletedEventArgs^ e);
+private: System::Void GetAppNames();
+private: System::Void WindowSelection_Click(System::Object^ sender, System::EventArgs^ e);
 };
 }
