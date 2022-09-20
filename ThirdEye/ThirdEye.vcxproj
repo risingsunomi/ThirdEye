@@ -35,6 +35,7 @@
     <ClInclude Include="MainWindow.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="VFrameReader.h" />
   </ItemGroup>
   <ItemGroup>

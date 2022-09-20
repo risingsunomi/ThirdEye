@@ -6,17 +6,21 @@ using namespace System::Diagnostics;
 ///<summary>
 /// Constructor
 /// <summary>
-ThirdEye::VFrameReader::VFrameReader(void) {
+ThirdEye::VFrameReader::VFrameReader() {
+    
     // default 1920x1080
     this->cFrameWidth = 1920;
     this->cFrameHeight = 1080;
+
+    
 }
 
 /// <summary>
 /// Deconstructor
 /// </summary>
 ThirdEye::VFrameReader::~VFrameReader() {
-
+    this->capView = nullptr;
+    this->bgWorker = nullptr;
 }
 
 ///<summary>
@@ -100,9 +104,9 @@ Image^ ThirdEye::VFrameReader::GetFrameDX(HWND capWindow) {
         this->cFrameWidth = GetDeviceCaps(cFrame, HORZRES);
         this->cFrameHeight = GetDeviceCaps(cFrame, VERTRES);
 
-        Debug::WriteLine("cFrame width height");
-        Debug::Write(this->cFrameWidth);
-        Debug::Write(this->cFrameHeight);
+        //Debug::WriteLine("cFrame width height");
+        //Debug::Write(this->cFrameWidth);
+        //Debug::Write(this->cFrameHeight);
 
 
         // create a bitmap to send to CaptureView
@@ -131,6 +135,56 @@ Image^ ThirdEye::VFrameReader::GetFrameDX(HWND capWindow) {
 }
 
 ///<summary>
-///GetFrameDX gets the current desktop or window frame like GetFrame
-/// but with DirectX
+/// CancelWork, Cancels work of frame grabbing done by WindowCaptureWorker in MainWindow
 ///</summary>
+System::Void ThirdEye::VFrameReader::CancelWork(void) {
+    this->isCanceled = true;
+}
+
+///<summary>
+/// DoWork, runs frame capture for WindowCaptureWorker and selected app
+///</summary>
+System::Void ThirdEye::VFrameReader::DoWork(System::ComponentModel::DoWorkEventArgs^ e) {
+    // get app name from argument
+    this->appName = safe_cast<String^>(e->Argument);
+
+    // get window info
+    HWND wHandle;
+    pin_ptr<const wchar_t> lcTitle = PtrToStringChars(this->appName);
+    wHandle = FindWindow(NULL, lcTitle);
+
+    if (wHandle != nullptr) {
+        Debug::WriteLine("\n"); 
+        Debug::Write(this->appName);
+        Debug::WriteLine("\n");
+
+        // capture live
+        while(!this->isCanceled) {
+            // Image^ cFrame = vfr.GetFrameDX(wHandle);
+            Image^ cFrame = this->GetFrame(wHandle);
+
+            if (cFrame != nullptr) {
+                Debug::WriteLine("Grabbing frame from GDI");
+                Debug::WriteLine("Size " + cFrame->Size.ToString());
+                this->capView->Image = cFrame;
+            }
+
+            Debug::WriteLine("\nCancellationPending?");
+            Debug::WriteLine(this->bgWorker->CancellationPending);
+            if (this->bgWorker->CancellationPending) {
+                e->Cancel = true;
+                break;
+            }
+
+        }
+    }
+}
+
+
+///<summary>
+/// GetSpatialWords, get all the words or letter found in the image
+/// model should be stored in C:\%userprofile%\AppData\Roaming\AlphaThirdEye
+///</summary>
+System::Void ThirdEye::VFrameReader::GetSpatialWords(void) {
+
+}

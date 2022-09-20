@@ -4,15 +4,6 @@ ThirdEye main window for testing of reading and display by opencv
 Will read text on screen and display what it sees through opencv
 */
 #include "MainWindow.h"
-#include "VFrameReader.h"
-#include "ComboboxItem.h"
-#include <vector>
-#include <string>
-#include <iostream>
-#include <codecvt>
-#include <vcclr.h>
-#include <list>
-
 
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
     const DWORD TITLE_SIZE = 1024;
@@ -61,6 +52,9 @@ ThirdEye::MainWindow::MainWindow() {
         ThirdEye::ComboboxItem^ cbi = gcnew ThirdEye::ComboboxItem(sTitle, 0);
         this->WindowSelection->Items->Add(cbi);
     }
+
+    // setup frame capture
+    this->vreader = gcnew ThirdEye::VFrameReader();
 }
 
 /// <summary>
@@ -71,6 +65,9 @@ ThirdEye::MainWindow::~MainWindow() {
 	{
 		delete components;
 	}
+
+    // clean up frame reader
+    this->vreader = nullptr;
 }
 
 
@@ -78,32 +75,21 @@ ThirdEye::MainWindow::~MainWindow() {
 /// Worker to live capture window from desktop
 /// </summary>
 System::Void ThirdEye::MainWindow::WindowCaptureWorker_DoWork(System::Object^ sender, System::ComponentModel::DoWorkEventArgs^ e) {
-    String^ swTitle = safe_cast<String^>(e->Argument);
-
-    // get window info
-    HWND wHandle;
-    pin_ptr<const wchar_t> lcTitle = PtrToStringChars(swTitle);
-    wHandle = FindWindow(NULL, lcTitle);
-
-    if (wHandle != nullptr) {
-        Debug::WriteLine(swTitle);
-
-        // capture live
-        for (;;) {
-            // call get frame to capture window
-            ThirdEye::VFrameReader vfr;
-            Image^ cFrame = vfr.GetFrame(wHandle);
-
-            if (cFrame != nullptr) {
-                // Image^ cFrame = vfr.GetFrameDX(wHandle);
-                Debug::WriteLine("Grabbing frame from GDXI");
-                Debug::WriteLine("Size " + cFrame->Size.ToString());
-                this->CaptureView->Image = cFrame;
-            }
-            
-        }
-    }
+    // check worker status
+    Debug::WriteLine("DoWork Start");
     
+    this->vreader->DoWork(e);
+}
+
+/// <summary>
+/// Worker to live capture window from desktop
+/// </summary>
+System::Void ThirdEye::MainWindow::WindowCaptureWorker_RunWorkerCompleted(System::Object^ sender, System::ComponentModel::RunWorkerCompletedEventArgs^ e)
+{
+   // run new worker with new selected app name
+    Debug::WriteLine("Starting after old worker stopped");
+    this->vreader->isCanceled = false;
+    this->vreader->bgWorker->RunWorkerAsync(this->vreader->appName);
 }
 
 
@@ -112,16 +98,32 @@ System::Void ThirdEye::MainWindow::WindowCaptureWorker_DoWork(System::Object^ se
 /// </summary>
 System::Void ThirdEye::MainWindow::WindowSelection_SelectionChangeCommitted(System::Object^ sender, System::EventArgs^ e) {
     ComboBox^ senderCB = (ComboBox^)sender;
-    String^ swTitle = senderCB->SelectedItem->ToString();
+    
+    // set app title
+    this->vreader->appName = senderCB->SelectedItem->ToString();
+
+    // set capture window
+    this->vreader->capView = this->CaptureView;
+
+    // set background worker
+    this->vreader->bgWorker = this->WindowCaptureWorker;
 
     // setup worker arguments
 
     // run worker for capture
     // stop previous capture if there is one
-    if(!this->WindowCaptureWorker->IsBusy)
-        this->WindowCaptureWorker->RunWorkerAsync(swTitle);
-    else
-        this->WindowCaptureWorker->CancelAsync();
+    Debug::WriteLine("Is busy?");
+    Debug::Write(this->vreader->bgWorker->IsBusy);
+    if (!this->vreader->bgWorker->IsBusy) {
+        this->vreader->bgWorker->WorkerSupportsCancellation = true;
+        this->vreader->bgWorker->RunWorkerAsync(this->vreader->appName);
+    } else {
+        if (!this->vreader->isCanceled) {
+            Debug::WriteLine("\nStopping worker to start a new capture\n");
 
-    
+            // close and start new process
+            this->vreader->bgWorker->CancelAsync();
+            this->vreader->CancelWork();
+        }
+    }
 }

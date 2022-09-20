@@ -1,5 +1,14 @@
 #pragma once
 
+#include "VFrameReader.h"
+#include "ComboboxItem.h"
+#include <vector>
+#include <string>
+#include <iostream>
+#include <codecvt>
+#include <vcclr.h>
+#include <list>
+
 namespace ThirdEye {
 
 	using namespace System;
@@ -41,6 +50,9 @@ namespace ThirdEye {
 			/// Required designer variable.
 			/// </summary>
 			System::ComponentModel::Container ^components;
+
+			// vframe member
+			ThirdEye::VFrameReader^ vreader;
 
 		#pragma region Windows Form Designer generated code
 			/// <summary>
@@ -220,6 +232,7 @@ namespace ThirdEye {
 				// WindowCaptureWorker
 				// 
 				this->WindowCaptureWorker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &MainWindow::WindowCaptureWorker_DoWork);
+				this->WindowCaptureWorker->RunWorkerCompleted += gcnew System::ComponentModel::RunWorkerCompletedEventHandler(this, &MainWindow::WindowCaptureWorker_RunWorkerCompleted);
 				// 
 				// MainWindow
 				// 
@@ -245,5 +258,6 @@ namespace ThirdEye {
 
 private: System::Void WindowSelection_SelectionChangeCommitted(System::Object^ sender, System::EventArgs^ e);
 private: System::Void WindowCaptureWorker_DoWork(System::Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
+private: System::Void WindowCaptureWorker_RunWorkerCompleted(System::Object^ sender, System::ComponentModel::RunWorkerCompletedEventArgs^ e);
 };
 }
